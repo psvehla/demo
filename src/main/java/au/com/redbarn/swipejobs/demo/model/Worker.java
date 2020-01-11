@@ -21,4 +21,6 @@ public class Worker {
 
 	@JsonProperty(value="isActive")
 	private boolean isActive;
+	
+	private boolean hasDriversLicense;
 }

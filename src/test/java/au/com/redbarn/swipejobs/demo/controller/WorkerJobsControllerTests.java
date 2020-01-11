@@ -23,7 +23,8 @@ public class WorkerJobsControllerTests {
 
 	@Test
 	void getJobsForWorker() {
-		assertEquals(40, workerJobsController.getJobsForWorker("5").size());
+		assertEquals(19, workerJobsController.getJobsForWorker("5").size());	// no driver's licence
+		assertEquals(40, workerJobsController.getJobsForWorker("8").size());	// had driver's licence
 	}
 
 	@Test

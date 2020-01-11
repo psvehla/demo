@@ -72,7 +72,7 @@ public class WorkerJobsController {
 		try {
 			var worker = getWorker(Integer.parseInt(workerId));
 			var jobs = getJobs();
-			var relevantJobs = jobs.stream().collect(Collectors.toList());
+			var relevantJobs = jobs.stream().filter(x -> worker.isHasDriversLicense() || !x.isDriverLicenseRequired()).collect(Collectors.toList());
 			return relevantJobs;
 		}
 		catch (NoSuchElementException e) {
