@@ -88,12 +88,20 @@ public class WorkerJobsController {
 
 						return hasCertificates;
 					})
+					.filter(j -> worker.getJobSearchAddress().getMaxJobDistance() >= geoDistance(Double.parseDouble(worker.getJobSearchAddress().getLatitude()), 
+							                                                                     Double.parseDouble(worker.getJobSearchAddress().getLongitude()), 
+							                                                                     Double.parseDouble(j.getLocation().getLatitude()), 
+							                                                                     Double.parseDouble(j.getLocation().getLongitude())))
 					.collect(Collectors.toList());
 
 			return relevantJobs;
 		}
 		catch (NoSuchElementException e) {
 			log.error("Worker " + workerId + " not found.", e);
+			return new ArrayList<>();
+		}
+		catch (UnsupportedDistanceUnitException e) {
+			log.error("Worker " + workerId + " has an unsupported record format.", e);
 			return new ArrayList<>();
 		}
 	}
@@ -103,10 +111,18 @@ public class WorkerJobsController {
 	 *
 	 * @param workerId The id of the {@link Worker} to retrieve.
 	 * @return The desired {@link Worker}.
+	 * @throws UnsupportedDistanceUnitException When the maximum distance to work isn't in km.
 	 */
-	private Worker getWorker(int workerId) {
+	private Worker getWorker(int workerId) throws UnsupportedDistanceUnitException {
+
 		Worker[] workers = restTemplate.getForEntity(workersUrl, Worker[].class).getBody();
-		return Arrays.asList(workers).stream().filter(x -> workerId == x.getUserId()).filter(Worker::isActive).findAny().orElseThrow();
+		Worker worker = Arrays.asList(workers).stream().filter(x -> workerId == x.getUserId()).filter(Worker::isActive).findAny().orElseThrow();
+
+		if (!"km".contentEquals(worker.getJobSearchAddress().getUnit())) {
+			throw new UnsupportedDistanceUnitException();
+		}
+
+		return worker;
 	}
 
 	/**
@@ -117,5 +133,35 @@ public class WorkerJobsController {
 	private List<Job> getJobs() {
 		Job[] jobs = restTemplate.getForEntity(jobsUrl, Job[].class).getBody();
 		return Arrays.asList(jobs);
+	}
+
+	/**
+	 * Calculates the distance (in km) between two geocodes.
+	 * Uses the haversine formula.
+	 *
+	 * @param workerLat The worker's latitude.
+	 * @param workerLong The worker's longitude.
+	 * @param jobLat The job's latitude.
+	 * @param jobLong The job's longitude.
+	 *
+	 * @return The distance (in km) between the two points.
+	 */
+	private int geoDistance(double workerLat, double workerLong, double jobLat, double jobLong) {
+
+		final int AVERAGE_EARTH_RADIUS = 6371;
+
+	    double latDistance = Math.toRadians(workerLat - jobLat);
+	    double longDistance = Math.toRadians(workerLong - jobLong);
+
+	    double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2) + Math.cos(Math.toRadians(workerLat)) * Math.cos(Math.toRadians(jobLat)) * Math.sin(longDistance / 2) * Math.sin(longDistance / 2);
+	    double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+	    
+	    log.error("geoDistance: " + (int) (Math.round(AVERAGE_EARTH_RADIUS * c)));
+
+	    return (int) (Math.round(AVERAGE_EARTH_RADIUS * c));
+	}
+
+	private class UnsupportedDistanceUnitException extends Exception {
+		private static final long serialVersionUID = -1057323490267419985L; 
 	}
 }

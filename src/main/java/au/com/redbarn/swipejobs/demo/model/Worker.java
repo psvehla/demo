@@ -26,4 +26,5 @@ public class Worker {
 	
 	private boolean hasDriversLicense;
 	private List<String> certificates;
+	private JobSearchAddress jobSearchAddress;
 }
