@@ -1,8 +1,10 @@
 # demo
 Test project.
 
+To run the demo:
+
 `mvn clean install`
 
 `mvnw spring-boot:run`
 
-`curl localhost:8080/get-jobs-for-worker/1`
+`curl localhost:8080/get-jobs-for-worker/5`

@@ -72,7 +72,24 @@ public class WorkerJobsController {
 		try {
 			var worker = getWorker(Integer.parseInt(workerId));
 			var jobs = getJobs();
-			var relevantJobs = jobs.stream().filter(x -> worker.isHasDriversLicense() || !x.isDriverLicenseRequired()).collect(Collectors.toList());
+
+			var relevantJobs = jobs
+					.stream()
+					.filter(j -> worker.isHasDriversLicense() || !j.isDriverLicenseRequired())
+					.filter(j -> {
+
+						var hasCertificates = true;
+
+						for (String requiredCert : j.getRequiredCertificates()) {
+							if (!worker.getCertificates().contains(requiredCert)) {
+								hasCertificates = false;
+							}
+						}
+
+						return hasCertificates;
+					})
+					.collect(Collectors.toList());
+
 			return relevantJobs;
 		}
 		catch (NoSuchElementException e) {
@@ -83,7 +100,7 @@ public class WorkerJobsController {
 
 	/**
 	 * Gets a {@link Worker} for a given id.
-	 * 
+	 *
 	 * @param workerId The id of the {@link Worker} to retrieve.
 	 * @return The desired {@link Worker}.
 	 */
@@ -94,7 +111,7 @@ public class WorkerJobsController {
 
 	/**
 	 * Gets all the available {@link Job}s.
-	 * 
+	 *
 	 * @return A {@link List} of all the available {@link Job}s.
 	 */
 	private List<Job> getJobs() {
