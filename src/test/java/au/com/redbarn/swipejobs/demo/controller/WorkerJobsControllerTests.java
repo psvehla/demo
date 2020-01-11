@@ -6,6 +6,7 @@ package au.com.redbarn.swipejobs.demo.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.util.ArrayList;
 import java.util.NoSuchElementException;
 
 import org.junit.jupiter.api.Test;
@@ -22,18 +23,16 @@ public class WorkerJobsControllerTests {
 
 	@Test
 	void getJobsForWorker() {
-		assertEquals("0", workerJobsController.getJobsForWorker("0"));
+		assertEquals(40, workerJobsController.getJobsForWorker("5").size());
 	}
 
 	@Test
 	void getJobsForInvalidWorker() {
-		Exception exception = assertThrows(NoSuchElementException.class, () -> workerJobsController.getJobsForWorker("1000"));
-		assertEquals("No value present", exception.getMessage());
+		assertEquals(new ArrayList<>(), workerJobsController.getJobsForWorker("1000"));
 	}
 
 	@Test
 	void getJobsForInactiveWorker() {
-		Exception exception = assertThrows(NoSuchElementException.class, () -> workerJobsController.getJobsForWorker("1"));
-		assertEquals("No value present", exception.getMessage());
+		assertEquals(new ArrayList<>(), workerJobsController.getJobsForWorker("1"));
 	}
 }

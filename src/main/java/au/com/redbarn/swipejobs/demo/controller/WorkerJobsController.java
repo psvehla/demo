@@ -5,6 +5,7 @@ package au.com.redbarn.swipejobs.demo.controller;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -18,8 +19,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
 import au.com.redbarn.swipejobs.demo.model.Job;
@@ -31,7 +34,8 @@ import au.com.redbarn.swipejobs.demo.model.Worker;
  * @author peter
  *
  */
-@Controller
+@RestController
+@RequestMapping("/get-jobs-for-worker")
 public class WorkerJobsController {
 
 	private static final Logger log = LoggerFactory.getLogger(WorkerJobsController.class);
@@ -62,18 +66,18 @@ public class WorkerJobsController {
 	 * @param workerId The worker to find appropriate jobs for.
 	 * @return Up to three appropriate jobs for the given worker.
 	 */
-	@GetMapping("/get-jobs-for-worker/{workerId}")
+	@GetMapping("/{workerId}")
 	@ResponseStatus(HttpStatus.OK)
-	public @ResponseBody String getJobsForWorker(@PathVariable("workerId") String workerId) {
+	public @ResponseBody List<Job> getJobsForWorker(@PathVariable("workerId") String workerId) {
 		try {
 			var worker = getWorker(Integer.parseInt(workerId));
 			var jobs = getJobs();
 			var relevantJobs = jobs.stream().collect(Collectors.toList());
-			return Integer.toString(worker.getUserId());
+			return relevantJobs;
 		}
 		catch (NoSuchElementException e) {
 			log.error("Worker " + workerId + " not found.", e);
-			return "Worker " + workerId + " not found.";
+			return new ArrayList<>();
 		}
 	}
 
