@@ -5,8 +5,11 @@ package au.com.redbarn.swipejobs.demo.controller;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Properties;
@@ -16,7 +19,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -73,6 +75,20 @@ public class WorkerJobsController {
 			var worker = getWorker(Integer.parseInt(workerId));
 			var jobs = getJobs();
 
+
+			Comparator<Job> jobComparator = (j1, j2) -> {
+
+				double comparison = 0;
+
+				try {
+					comparison = (Double) NumberFormat.getCurrencyInstance().parse(j2.getBillRate()) - (Double) NumberFormat.getCurrencyInstance().parse(j1.getBillRate());
+				} catch (ParseException e) {
+					log.error("One of jobs " + j1.getJobId() + " or " + j2.getJobId() + " has an invalid bill rate.", e);
+				}
+
+				return (int) comparison;
+			};
+
 			var relevantJobs = jobs
 					.stream()
 					.filter(j -> worker.isHasDriversLicense() || !j.isDriverLicenseRequired())
@@ -88,10 +104,11 @@ public class WorkerJobsController {
 
 						return hasCertificates;
 					})
-					.filter(j -> worker.getJobSearchAddress().getMaxJobDistance() >= geoDistance(Double.parseDouble(worker.getJobSearchAddress().getLatitude()), 
-							                                                                     Double.parseDouble(worker.getJobSearchAddress().getLongitude()), 
-							                                                                     Double.parseDouble(j.getLocation().getLatitude()), 
+					.filter(j -> worker.getJobSearchAddress().getMaxJobDistance() >= geoDistance(Double.parseDouble(worker.getJobSearchAddress().getLatitude()),
+							                                                                     Double.parseDouble(worker.getJobSearchAddress().getLongitude()),
+							                                                                     Double.parseDouble(j.getLocation().getLatitude()),
 							                                                                     Double.parseDouble(j.getLocation().getLongitude())))
+					.sorted(jobComparator)
 					.collect(Collectors.toList());
 
 			return relevantJobs;
@@ -155,13 +172,11 @@ public class WorkerJobsController {
 
 	    double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2) + Math.cos(Math.toRadians(workerLat)) * Math.cos(Math.toRadians(jobLat)) * Math.sin(longDistance / 2) * Math.sin(longDistance / 2);
 	    double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-	    
-	    log.error("geoDistance: " + (int) (Math.round(AVERAGE_EARTH_RADIUS * c)));
 
 	    return (int) (Math.round(AVERAGE_EARTH_RADIUS * c));
 	}
 
 	private class UnsupportedDistanceUnitException extends Exception {
-		private static final long serialVersionUID = -1057323490267419985L; 
+		private static final long serialVersionUID = -1057323490267419985L;
 	}
 }

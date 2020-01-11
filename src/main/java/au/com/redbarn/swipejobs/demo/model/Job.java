@@ -22,4 +22,5 @@ public class Job {
 	private boolean driverLicenseRequired;
 	private List<String> requiredCertificates;
 	private Location location;
+	private String billRate;
 }
