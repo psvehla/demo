@@ -1,9 +1,12 @@
 /**
- * 
+ *
  */
 package au.com.redbarn.swipejobs.demo.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import java.util.NoSuchElementException;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -14,11 +17,17 @@ import org.springframework.boot.test.context.SpringBootTest;
  */
 @SpringBootTest
 public class WorkerJobsControllerTests {
-	
+
 	private final WorkerJobsController workerJobsController = new WorkerJobsController();
-	
+
 	@Test
 	void getJobsForWorker() {
 		assertEquals("1", workerJobsController.getJobsForWorker("1"));
+	}
+	
+	@Test
+	void getJobsForInvalidWorker() {
+		Exception exception = assertThrows(NoSuchElementException.class, () -> workerJobsController.getJobsForWorker("1000"));
+		assertEquals("No value present", exception.getMessage());
 	}
 }
