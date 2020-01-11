@@ -22,12 +22,18 @@ public class WorkerJobsControllerTests {
 
 	@Test
 	void getJobsForWorker() {
-		assertEquals("1", workerJobsController.getJobsForWorker("1"));
+		assertEquals("0", workerJobsController.getJobsForWorker("0"));
 	}
-	
+
 	@Test
 	void getJobsForInvalidWorker() {
 		Exception exception = assertThrows(NoSuchElementException.class, () -> workerJobsController.getJobsForWorker("1000"));
+		assertEquals("No value present", exception.getMessage());
+	}
+
+	@Test
+	void getJobsForInactiveWorker() {
+		Exception exception = assertThrows(NoSuchElementException.class, () -> workerJobsController.getJobsForWorker("1"));
 		assertEquals("No value present", exception.getMessage());
 	}
 }
