@@ -5,6 +5,6 @@ To run the demo:
 
 `mvn clean install`
 
-`mvnw spring-boot:run`
+`mvn spring-boot:run`
 
 `curl localhost:8080/get-jobs-for-worker/5`
