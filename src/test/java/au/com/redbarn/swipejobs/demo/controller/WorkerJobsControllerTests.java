@@ -24,11 +24,12 @@ import au.com.redbarn.swipejobs.demo.model.Job;
 public class WorkerJobsControllerTests {
 
 	private final WorkerJobsController workerJobsController = new WorkerJobsController();
+	private static final long NUMBER_OF_JOBS_RETURNED = 3;
 
 	@Test
 	void getJobsForWorker() {
-		assertEquals(4, workerJobsController.getJobsForWorker("5").size());		// no driver's licence
-		assertEquals(14, workerJobsController.getJobsForWorker("8").size());	// has driver's licence
+		assertEquals(NUMBER_OF_JOBS_RETURNED, workerJobsController.getJobsForWorker("5").size());		// no driver's licence
+		assertEquals(NUMBER_OF_JOBS_RETURNED, workerJobsController.getJobsForWorker("8").size());		// has driver's licence
 	}
 
 	@Test

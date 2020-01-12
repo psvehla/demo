@@ -41,6 +41,8 @@ import au.com.redbarn.swipejobs.demo.model.Worker;
 public class WorkerJobsController {
 
 	private static final Logger log = LoggerFactory.getLogger(WorkerJobsController.class);
+	
+	private static final long NUMBER_OF_JOBS_RETURNED = 3;
 
 	private static String workersUrl;
 	private static String jobsUrl;
@@ -109,6 +111,7 @@ public class WorkerJobsController {
 							                                                                     Double.parseDouble(j.getLocation().getLatitude()),
 							                                                                     Double.parseDouble(j.getLocation().getLongitude())))
 					.sorted(jobComparator)
+					.limit(NUMBER_OF_JOBS_RETURNED)
 					.collect(Collectors.toList());
 
 			return relevantJobs;
