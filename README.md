@@ -1,6 +1,11 @@
 # demo
 Test project.
 
+Requires:
+* Java 13
+* Maven
+* curl
+
 To run the demo:
 
 `mvn clean install`
