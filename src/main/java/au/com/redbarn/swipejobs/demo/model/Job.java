@@ -23,4 +23,10 @@ public class Job {
 	private List<String> requiredCertificates;
 	private Location location;
 	private String billRate;
+	private int workersRequired;
+	private String startDate;
+	private String about;
+	private String jobTitle;
+	private String company;
+	private String guid;
 }
