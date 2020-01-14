@@ -27,8 +27,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
-import au.com.redbarn.swipejobs.demo.model.Job;
-import au.com.redbarn.swipejobs.demo.model.Worker;
+import au.com.redbarn.swipejobs.demo.geo.Geo;
+import au.com.redbarn.swipejobs.demo.model.job.Job;
+import au.com.redbarn.swipejobs.demo.model.worker.Worker;
 
 /**
  * Gets jobs for workers.
@@ -42,10 +43,9 @@ public class WorkerJobsController {
 
 	private static final Logger log = LoggerFactory.getLogger(WorkerJobsController.class);
 	
-	private static final long NUMBER_OF_JOBS_RETURNED = 3;
-
 	private static String workersUrl;
 	private static String jobsUrl;
+	private static int numberOfJobsReturned;
 
 	private static RestTemplateBuilder restTemplateBuilder = new RestTemplateBuilder();
 	private static RestTemplate restTemplate = restTemplateBuilder.build();
@@ -59,6 +59,7 @@ public class WorkerJobsController {
 
 			workersUrl = applicationProperties.getProperty("workersUrl");
 			jobsUrl = applicationProperties.getProperty("jobsUrl");
+			numberOfJobsReturned = Integer.parseInt(applicationProperties.getProperty("numberOfJobsReturned"));
 		} catch (IOException e) {
 			log.error("Application configuration error, could not find application properties.", e);
 		}
@@ -106,12 +107,12 @@ public class WorkerJobsController {
 
 						return hasCertificates;
 					})
-					.filter(j -> worker.getJobSearchAddress().getMaxJobDistance() >= geoDistance(Double.parseDouble(worker.getJobSearchAddress().getLatitude()),
-							                                                                     Double.parseDouble(worker.getJobSearchAddress().getLongitude()),
-							                                                                     Double.parseDouble(j.getLocation().getLatitude()),
-							                                                                     Double.parseDouble(j.getLocation().getLongitude())))
+					.filter(j -> worker.getJobSearchAddress().getMaxJobDistance() >= Geo.geoDistance(Double.parseDouble(worker.getJobSearchAddress().getLatitude()),
+							                                                                         Double.parseDouble(worker.getJobSearchAddress().getLongitude()),
+							                                                                         Double.parseDouble(j.getLocation().getLatitude()),
+							                                                                         Double.parseDouble(j.getLocation().getLongitude())))
 					.sorted(jobComparator)
-					.limit(NUMBER_OF_JOBS_RETURNED)
+					.limit(numberOfJobsReturned)
 					.collect(Collectors.toList());
 
 			return relevantJobs;
@@ -155,29 +156,6 @@ public class WorkerJobsController {
 		return Arrays.asList(jobs);
 	}
 
-	/**
-	 * Calculates the distance (in km) between two geocodes.
-	 * Uses the haversine formula.
-	 *
-	 * @param workerLat The worker's latitude.
-	 * @param workerLong The worker's longitude.
-	 * @param jobLat The job's latitude.
-	 * @param jobLong The job's longitude.
-	 *
-	 * @return The distance (in km) between the two points.
-	 */
-	private int geoDistance(double workerLat, double workerLong, double jobLat, double jobLong) {
-
-		final int AVERAGE_EARTH_RADIUS = 6371;
-
-	    double latDistance = Math.toRadians(workerLat - jobLat);
-	    double longDistance = Math.toRadians(workerLong - jobLong);
-
-	    double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2) + Math.cos(Math.toRadians(workerLat)) * Math.cos(Math.toRadians(jobLat)) * Math.sin(longDistance / 2) * Math.sin(longDistance / 2);
-	    double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-	    return (int) (Math.round(AVERAGE_EARTH_RADIUS * c));
-	}
 
 	private class UnsupportedDistanceUnitException extends Exception {
 		private static final long serialVersionUID = -1057323490267419985L;

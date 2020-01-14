@@ -14,7 +14,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import au.com.redbarn.swipejobs.demo.model.Job;
+import au.com.redbarn.swipejobs.demo.model.job.Job;
 
 /**
  * @author peter

@@ -1,7 +1,7 @@
 /**
  *
  */
-package au.com.redbarn.swipejobs.demo.model;
+package au.com.redbarn.swipejobs.demo.model.worker;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
