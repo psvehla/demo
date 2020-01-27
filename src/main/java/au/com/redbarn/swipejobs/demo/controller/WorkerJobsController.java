@@ -15,8 +15,8 @@ import java.util.NoSuchElementException;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,6 +30,9 @@ import org.springframework.web.client.RestTemplate;
 import au.com.redbarn.swipejobs.demo.geo.Geo;
 import au.com.redbarn.swipejobs.demo.model.job.Job;
 import au.com.redbarn.swipejobs.demo.model.worker.Worker;
+import au.com.redbarn.swipejobs.demo.service.worker.WorkerService;
+import au.com.redbarn.swipejobs.demo.service.worker.errors.UnsupportedDistanceUnitException;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Gets jobs for workers.
@@ -39,12 +42,15 @@ import au.com.redbarn.swipejobs.demo.model.worker.Worker;
  */
 @RestController
 @RequestMapping("/get-jobs-for-worker")
+@Slf4j
 public class WorkerJobsController {
 
-	private static final Logger log = LoggerFactory.getLogger(WorkerJobsController.class);
-	
-	private static String workersUrl;
-	private static String jobsUrl;
+	@Autowired
+	private WorkerService workerService;
+
+	@Value(value = "${jobs.url}")
+	private String jobsUrl;
+
 	private static int numberOfJobsReturned;
 
 	private static RestTemplateBuilder restTemplateBuilder = new RestTemplateBuilder();
@@ -57,9 +63,7 @@ public class WorkerJobsController {
 			var applicationProperties = new Properties();
 			applicationProperties.load(new FileInputStream(applicationPropertiesPath));
 
-			workersUrl = applicationProperties.getProperty("workersUrl");
-			jobsUrl = applicationProperties.getProperty("jobsUrl");
-			numberOfJobsReturned = Integer.parseInt(applicationProperties.getProperty("numberOfJobsReturned"));
+			numberOfJobsReturned = Integer.parseInt(applicationProperties.getProperty("number.of.jobs.returned"));
 		} catch (IOException e) {
 			log.error("Application configuration error, could not find application properties.", e);
 		}
@@ -75,7 +79,7 @@ public class WorkerJobsController {
 	@ResponseStatus(HttpStatus.OK)
 	public @ResponseBody List<Job> getJobsForWorker(@PathVariable("workerId") String workerId) {
 		try {
-			var worker = getWorker(Integer.parseInt(workerId));
+			Worker worker = workerService.getWorker(Integer.parseInt(workerId));
 			var jobs = getJobs();
 
 
@@ -128,25 +132,6 @@ public class WorkerJobsController {
 	}
 
 	/**
-	 * Gets a {@link Worker} for a given id.
-	 *
-	 * @param workerId The id of the {@link Worker} to retrieve.
-	 * @return The desired {@link Worker}.
-	 * @throws UnsupportedDistanceUnitException When the maximum distance to work isn't in km.
-	 */
-	private Worker getWorker(int workerId) throws UnsupportedDistanceUnitException {
-
-		Worker[] workers = restTemplate.getForEntity(workersUrl, Worker[].class).getBody();
-		Worker worker = Arrays.asList(workers).stream().filter(x -> workerId == x.getUserId()).filter(Worker::isActive).findAny().orElseThrow();
-
-		if (!"km".contentEquals(worker.getJobSearchAddress().getUnit())) {
-			throw new UnsupportedDistanceUnitException();
-		}
-
-		return worker;
-	}
-
-	/**
 	 * Gets all the available {@link Job}s.
 	 *
 	 * @return A {@link List} of all the available {@link Job}s.
@@ -154,10 +139,5 @@ public class WorkerJobsController {
 	private List<Job> getJobs() {
 		Job[] jobs = restTemplate.getForEntity(jobsUrl, Job[].class).getBody();
 		return Arrays.asList(jobs);
-	}
-
-
-	private class UnsupportedDistanceUnitException extends Exception {
-		private static final long serialVersionUID = -1057323490267419985L;
 	}
 }

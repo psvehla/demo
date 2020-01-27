@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import au.com.redbarn.swipejobs.demo.model.job.Job;
@@ -23,7 +24,9 @@ import au.com.redbarn.swipejobs.demo.model.job.Job;
 @SpringBootTest
 public class WorkerJobsControllerTests {
 
-	private final WorkerJobsController workerJobsController = new WorkerJobsController();
+	@Autowired
+	private WorkerJobsController workerJobsController;
+
 	private static final long NUMBER_OF_JOBS_RETURNED = 3;
 
 	@Test
@@ -41,14 +44,14 @@ public class WorkerJobsControllerTests {
 	void getJobsForInactiveWorker() {
 		assertEquals(new ArrayList<>(), workerJobsController.getJobsForWorker("1"));
 	}
-	
+
 	@Test
 	void checkBillRateOrder() {
 		List<Job> jobs = workerJobsController.getJobsForWorker("5");
-		
+
 		try {
 			Double prevJobRate = (Double) NumberFormat.getCurrencyInstance().parse(jobs.get(0).getBillRate());
-			
+
 			for (var job : jobs) {
 				if ((Double) NumberFormat.getCurrencyInstance().parse(job.getBillRate()) > prevJobRate) {
 					fail();
