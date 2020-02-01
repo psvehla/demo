@@ -3,8 +3,6 @@
  */
 package au.com.redbarn.swipejobs.demo.controller;
 
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -12,7 +10,6 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Properties;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,23 +48,11 @@ public class WorkerJobsController {
 	@Value(value = "${jobs.url}")
 	private String jobsUrl;
 
-	private static int numberOfJobsReturned;
+	@Value(value = "${number.of.jobs.returned}")
+	private int numberOfJobsReturned;
 
 	private static RestTemplateBuilder restTemplateBuilder = new RestTemplateBuilder();
 	private static RestTemplate restTemplate = restTemplateBuilder.build();
-
-	static {
-		try {
-			var rootPath = Thread.currentThread().getContextClassLoader().getResource("").getPath();
-			var applicationPropertiesPath = rootPath + "application.properties";
-			var applicationProperties = new Properties();
-			applicationProperties.load(new FileInputStream(applicationPropertiesPath));
-
-			numberOfJobsReturned = Integer.parseInt(applicationProperties.getProperty("number.of.jobs.returned"));
-		} catch (IOException e) {
-			log.error("Application configuration error, could not find application properties.", e);
-		}
-	}
 
 	/**
 	 * Gets up to three appropriate jobs for a given worker.
