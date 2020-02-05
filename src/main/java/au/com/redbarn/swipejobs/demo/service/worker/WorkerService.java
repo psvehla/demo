@@ -14,6 +14,8 @@ import au.com.redbarn.swipejobs.demo.model.worker.Worker;
 import au.com.redbarn.swipejobs.demo.service.worker.errors.UnsupportedDistanceUnitException;
 
 /**
+ * Gets worker information from upstream web services.
+ *
  * @author peter
  *
  */

@@ -6,7 +6,6 @@ package au.com.redbarn.swipejobs.demo.controller;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -14,7 +13,6 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,11 +20,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestTemplate;
 
 import au.com.redbarn.swipejobs.demo.geo.Geo;
 import au.com.redbarn.swipejobs.demo.model.job.Job;
 import au.com.redbarn.swipejobs.demo.model.worker.Worker;
+import au.com.redbarn.swipejobs.demo.service.job.JobService;
 import au.com.redbarn.swipejobs.demo.service.worker.WorkerService;
 import au.com.redbarn.swipejobs.demo.service.worker.errors.UnsupportedDistanceUnitException;
 import lombok.extern.slf4j.Slf4j;
@@ -45,14 +43,11 @@ public class WorkerJobsController {
 	@Autowired
 	private WorkerService workerService;
 
-	@Value(value = "${jobs.url}")
-	private String jobsUrl;
+	@Autowired
+	private JobService jobService;
 
 	@Value(value = "${number.of.jobs.returned}")
 	private int numberOfJobsReturned;
-
-	private static RestTemplateBuilder restTemplateBuilder = new RestTemplateBuilder();
-	private static RestTemplate restTemplate = restTemplateBuilder.build();
 
 	/**
 	 * Gets up to three appropriate jobs for a given worker.
@@ -65,7 +60,7 @@ public class WorkerJobsController {
 	public @ResponseBody List<Job> getJobsForWorker(@PathVariable("workerId") String workerId) {
 		try {
 			Worker worker = workerService.getWorker(Integer.parseInt(workerId));
-			var jobs = getJobs();
+			List<Job> jobs = jobService.getJobs();
 
 
 			Comparator<Job> jobComparator = (j1, j2) -> {
@@ -114,15 +109,5 @@ public class WorkerJobsController {
 			log.error("Worker " + workerId + " has an unsupported record format.", e);
 			return new ArrayList<>();
 		}
-	}
-
-	/**
-	 * Gets all the available {@link Job}s.
-	 *
-	 * @return A {@link List} of all the available {@link Job}s.
-	 */
-	private List<Job> getJobs() {
-		Job[] jobs = restTemplate.getForEntity(jobsUrl, Job[].class).getBody();
-		return Arrays.asList(jobs);
 	}
 }
